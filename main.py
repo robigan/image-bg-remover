@@ -44,6 +44,9 @@ class ImageProcessorApp(tk.Tk):
         # Update the process label text
         self.process_label.config(text="Image processing complete.")
 
+        # Send a notification
+        ImageProcessorApp.notify("Image Processing", "Background Removed", "Image processing complete. The image has been copied to your clipboard.")
+
     def run_remove(self, image):
         # Remove the background
         return remove(image, session=self.session)
@@ -62,6 +65,18 @@ class ImageProcessorApp(tk.Tk):
 
         # Set PNG data on the pasteboard
         pasteboard.setData_forType_(byte_stream.read(), NSPasteboardTypePNG)
+
+    def notify(title, subtitle, info_text):
+        content = UNMutableNotificationContent.alloc().init()
+        content.setTitle_(title)
+        content.setBody_(info_text)
+
+        request = UNNotificationRequest.alloc().init()
+        request.setValue_forKey_(content, "content") # Hacky way to set the content and identifier
+        request.setValue_forKey_(uuid.uuid4().hex, "identifier")
+
+        center = UNUserNotificationCenter.currentNotificationCenter()
+        center.addNotificationRequest_(request)
 
 if __name__ == "__main__":
     app = ImageProcessorApp("isnet-general-use")
