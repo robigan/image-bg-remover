@@ -4,6 +4,9 @@ import threading
 from PIL import ImageGrab
 from rembg import remove, new_session
 from AppKit import NSPasteboard, NSPasteboardTypePNG
+from UserNotifications import UNNotificationRequest, UNUserNotificationCenter, UNMutableNotificationContent
+# from Foundation import NSUserNotification, NSUserNotificationCenter
+import uuid
 
 class ImageProcessorApp(tk.Tk):
     def __init__(self, model_name: str):
@@ -23,6 +26,10 @@ class ImageProcessorApp(tk.Tk):
     def process_image(self):
         # Get the image from the clipboard
         image = self.get_image_from_clipboard()
+
+        if image is None:
+            self.process_label.config(text="No image found in clipboard.")
+            return
 
         # Update the process label text
         self.process_label.config(text="Processing image...")
@@ -81,3 +88,4 @@ class ImageProcessorApp(tk.Tk):
 if __name__ == "__main__":
     app = ImageProcessorApp("isnet-general-use")
     app.mainloop()
+    # app.notify("Image Processing", "Background Removed", "Image processing complete. The image has been copied to your clipboard.")
