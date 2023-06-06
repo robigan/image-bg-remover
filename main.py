@@ -1,6 +1,6 @@
 from io import BytesIO
 import tkinter as tk
-import asyncio
+import threading
 from PIL import ImageGrab
 from rembg import remove, new_session
 from AppKit import NSPasteboard, NSPasteboardTypePNG
@@ -27,15 +27,15 @@ class ImageProcessorApp(tk.Tk):
         # Update the process label text
         self.process_label.config(text="Processing image...")
 
-        # Modify the image
-        self.modify_image(image)
+        # Modify the image in a separate thread
+        # Use threading to prevent the GUI from freezing instead of asyncio because using asyncio with Tkinter is not recommended
+        threading.Thread(target=self.modify_image, args=(image,)).start()
 
     def get_image_from_clipboard(self):
         image = ImageGrab.grabclipboard()
         return image
 
-    async def modify_image(self, image):
-        # Remove the background
+    def modify_image(self, image):
         processed_image = self.run_remove(image)
 
         # Copy image to clipboard
