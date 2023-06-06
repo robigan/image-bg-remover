@@ -88,4 +88,3 @@ class ImageProcessorApp(tk.Tk):
 if __name__ == "__main__":
     app = ImageProcessorApp("isnet-general-use")
     app.mainloop()
-    # app.notify("Image Processing", "Background Removed", "Image processing complete. The image has been copied to your clipboard.")
