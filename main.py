@@ -1,16 +1,15 @@
+from io import BytesIO
 import tkinter as tk
-from PIL import Image, ImageTk, ImageGrab 
-import tempfile
-import hashlib
-from os import path
-import subprocess
+import asyncio
+from PIL import ImageGrab
 from rembg import remove, new_session
+from AppKit import NSPasteboard, NSPasteboardTypePNG
+
 
 class ImageProcessorApp(tk.Tk):
     def __init__(self, model_name: str):
         super().__init__()
 
-        self.temp_dir = tempfile.gettempdir()
         self.session = new_session(model_name)
 
         self.title("Image Processor")
@@ -23,46 +22,40 @@ class ImageProcessorApp(tk.Tk):
         # Get the image from the clipboard
         image = self.get_image_from_clipboard()
 
-        # Perform processing on the image (resizing in this example)
-        processed_image = self.modify_image(image)
-
-        # Display the image using the system default application
-        self.display_image_using_system_application(processed_image)
+        # Perform processing on the image
+        self.modify_image(image)
 
     def get_image_from_clipboard(self):
-        # image_data = None
-
-        # try:
-        #     # Get image data from clipboard
-        #     image_data = self.clipboard_get(type='image/png')
-        # except tk.TclError as e:
-        #     print('TclError:{}'.format(e))
-        #     exit(1)
-
-        # # Create a PIL Image object from the image data
-        # image = Image.open(io.BytesIO(image_data))
         image = ImageGrab.grabclipboard()
-
         return image
 
-    def modify_image(self, image):
-        # Resize the image
-        # resized_image = image.resize((width, height))
-        returned_image = remove(image, session=self.session, alpha_matting=True)
+    async def modify_image(self, image):
+        loop = asyncio.get_event_loop()
 
-        return returned_image
+        # Run the computationally expensive operation in a separate task
+        processed_image = await loop.run_in_executor(None, self.run_remove, image)
 
-    def display_image_using_system_application(self, image: Image):
-        # Get temp path so save image to
-        saved_path = path.join(self.temp_dir, hashlib.sha256(image.tobytes()).hexdigest() + ".png")
+        # Display the image using the system default application
+        self.copy_image_to_clipboard(processed_image)
 
-        # Save the image
-        image.save(saved_path, format='png')
+    def run_remove(self, image):
+        # Remove the background
+        return remove(image, session=self.session)
 
-        # Open the image. See https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
-        subprocess.run(["open", saved_path], check=True)
+    def copy_image_to_clipboard(self, image):
+        # Convert the PIL image to a PNG byte stream
+        byte_stream = BytesIO()
+        image.save(byte_stream, format="PNG")
+        byte_stream.seek(0)
 
-    
+        # Initialize NSPasteboard
+        pasteboard = NSPasteboard.generalPasteboard()
+
+        # Clear pasteboard contents
+        pasteboard.clearContents()
+
+        # Set PNG data on the pasteboard
+        pasteboard.setData_forType_(byte_stream.read(), NSPasteboardTypePNG)
 
 if __name__ == "__main__":
     app = ImageProcessorApp("isnet-general-use")
