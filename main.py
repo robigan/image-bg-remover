@@ -27,7 +27,7 @@ class ImageProcessorApp(tk.Tk):
         # Update the process label text
         self.process_label.config(text="Processing image...")
 
-        # Perform processing on the image
+        # Modify the image
         self.modify_image(image)
 
     def get_image_from_clipboard(self):
@@ -35,12 +35,10 @@ class ImageProcessorApp(tk.Tk):
         return image
 
     async def modify_image(self, image):
-        loop = asyncio.get_event_loop()
+        # Remove the background
+        processed_image = self.run_remove(image)
 
-        # Run the computationally expensive operation in a separate task
-        processed_image = await loop.run_in_executor(None, self.run_remove, image)
-
-        # Display the image using the system default application
+        # Copy image to clipboard
         self.copy_image_to_clipboard(processed_image)
 
         # Update the process label text
