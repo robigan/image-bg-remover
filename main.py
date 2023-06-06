@@ -5,7 +5,6 @@ from PIL import ImageGrab
 from rembg import remove, new_session
 from AppKit import NSPasteboard, NSPasteboardTypePNG
 
-
 class ImageProcessorApp(tk.Tk):
     def __init__(self, model_name: str):
         super().__init__()
@@ -18,9 +17,15 @@ class ImageProcessorApp(tk.Tk):
         self.process_button = tk.Button(self, text="Process Image", command=self.process_image)
         self.process_button.pack(padx=10, pady=10)
 
+        self.process_label = tk.Label(self, text="")
+        self.process_label.pack(pady=10)
+
     def process_image(self):
         # Get the image from the clipboard
         image = self.get_image_from_clipboard()
+
+        # Update the process label text
+        self.process_label.config(text="Processing image...")
 
         # Perform processing on the image
         self.modify_image(image)
@@ -37,6 +42,9 @@ class ImageProcessorApp(tk.Tk):
 
         # Display the image using the system default application
         self.copy_image_to_clipboard(processed_image)
+
+        # Update the process label text
+        self.process_label.config(text="Image processing complete.")
 
     def run_remove(self, image):
         # Remove the background
