@@ -12,7 +12,7 @@ class ImageProcessorApp(tk.Tk):
         self.session = new_session(model_name)
 
         self.title("Image Processor")
-        self.geometry("400x400")
+        self.geometry("400x200")
 
         self.process_button = tk.Button(self, text="Process Image", command=self.process_image)
         self.process_button.pack(padx=10, pady=10)
